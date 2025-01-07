@@ -62,6 +62,9 @@ export default function Suppliers() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  S.NO:
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                  company Name
                 </th>
@@ -80,8 +83,9 @@ export default function Suppliers() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {suppliers.map((supplier) => (
+              {suppliers.map((supplier,index) => (
                 <tr key={supplier.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index+1}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{supplier.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{supplier.contactPerson}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{supplier.email}</td>

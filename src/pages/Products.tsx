@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import ProductService from '../services/product.service'; // Assuming ProductService is in this path
+import ProductService from '../services/Product.service'; // Assuming ProductService is in this path
 import { useNavigate } from 'react-router-dom';
 
 
@@ -63,6 +63,7 @@ export default function Products() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+              
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Name
                 </th>
