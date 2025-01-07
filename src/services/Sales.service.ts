@@ -9,6 +9,7 @@ export interface SaleProduct {
   totalAmount: number;
 }
 
+
 export interface Sale {
   id: string;
   products: SaleProduct[];
