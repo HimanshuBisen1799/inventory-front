@@ -84,6 +84,7 @@ const menuItems = [
   { icon: Package, label: 'Products', path: '/products', roles: ['admin'] },
   { icon: Users, label: 'Suppliers', path: '/suppliers', roles: ['admin'] },
   { icon: ShoppingCart, label: 'Purchases', path: '/purchases', roles: ['admin'] },
+  { icon: ShoppingCart, label: 'Categories', path: '/categories', roles: ['admin'] },
   { icon: BarChart, label: 'Sales', path: '/sales', roles: ['admin', 'user'] },
 ];
 
