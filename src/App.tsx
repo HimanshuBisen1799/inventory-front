@@ -1,45 +1,4 @@
-// import React from 'react';
-// import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-// import LoginForm from './components/auth/LoginForm';
-// import AddProduct from './components/productfrom/AddProduct';
-// import Selladd from './components/productfrom/Sell';
 
-// import DashboardLayout from './components/layout/DashboardLayout';
-// import Dashboard from './pages/Dashboard';
-// import Products from './pages/Products';
-// import Suppliers from './pages/Suppliers';
-// import Purchases from './pages/Purchases';
-// import Sales from './pages/Sales';
-// import RegistrationForm from './components/auth/RegistrationForm';
-// import { ToastContainer } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-
-// function App() {
-//   return (
-    
-//     <Router>
-//       <Routes>
-//         <Route path="/login" element={<LoginForm />} />
-//         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-//         <Route path="/" element={<DashboardLayout />}>
-//           <Route path="dashboard" element={<Dashboard />} />
-//           <Route path="products" element={<Products />} />
-//           <Route path="suppliers" element={<Suppliers />} />
-//           <Route path="purchases" element={<Purchases />} />
-//           <Route path="sales" element={<Sales />} />
-//           <Route path="addproduct" element={<AddProduct />} />
-//           <Route path="selladd" element={<Selladd />} />
-//           <Route path="/login" element={<LoginForm />} />
-//                <Route path="/register" element={<RegistrationForm />} />
-//                {/* <ToastContainer /> */}
-//         </Route>
-//       </Routes>
-//     </Router>
-//   );
-// }
-
-// export default App;
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import LoginForm from './components/auth/LoginForm';
@@ -55,6 +14,8 @@ import Sales from './pages/Sales';
 import RegistrationForm from './components/auth/RegistrationForm';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Categories from './pages/Category'
+import UpdateSupplier from './pages/UpdateSuppliers';
 
 const getToken = () => localStorage.getItem('token');
 const getUserRole = () => {
@@ -93,7 +54,9 @@ const AppRoutes = () => {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="products" element={<Products />} />
             <Route path="suppliers" element={<Suppliers />} />
+            <Route path="categories" element={<Categories />} />
             <Route path="suppliers/add" element={<AddSupplier />} />
+            <Route path="suppliers/update/:id" element={<UpdateSupplier />} />
             <Route path="purchases" element={<Purchases />} />
             {/* <Route path="sales" element={<Sales />} /> */}
             <Route path="addproduct" element={<AddProduct />} />

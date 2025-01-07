@@ -34,6 +34,11 @@ const SupplierService = {
     const response = await apiClient.get(API_BASE_URL);
     return response.data;
   },
+
+  deleteSupplier: async (_id: string) => {
+    const response = await apiClient.delete(`${API_BASE_URL}/delete/${_id}`);
+    return response.data;
+  },
 };
 
 export default SupplierService;
