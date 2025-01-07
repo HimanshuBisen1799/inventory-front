@@ -258,7 +258,7 @@ const Selladd: React.FC = () => {
                   ref={index === saleDetails.products.length - 1 ? skuInputRef : null}
                   value={product.sku}
                   onChange={(e) => handleInputChange(e, index, "products")}
-                  className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                  className="w-[45%] border border-gray-300 rounded-md p-2 mt-1"
                   readOnly={!isManualEntry && isScanning}
                   required
                 />
@@ -274,7 +274,7 @@ const Selladd: React.FC = () => {
                   name="quantitySold"
                   value={product.quantitySold}
                   onChange={(e) => handleInputChange(e, index, "products")}
-                  className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                  className="w-[45%] border border-gray-300 rounded-md p-2 mt-1"
                   min="1"
                   required
                 />

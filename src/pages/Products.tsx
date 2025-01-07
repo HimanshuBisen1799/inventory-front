@@ -78,6 +78,9 @@ export default function Products() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -103,6 +106,9 @@ export default function Products() {
                     >
                       {product.quantity > 0 ? 'In Stock' : 'Out of Stock'}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                   b
                   </td>
                 </tr>
               ))}
