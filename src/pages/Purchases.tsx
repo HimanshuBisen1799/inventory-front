@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import PurchaseService from '../services/purchase.service';
+import PurchaseService from '../services/Purchase.service';
 
 interface Purchase {
   _id: string;
@@ -85,11 +85,11 @@ export default function Purchases() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {purchases.map((purchase) => (
+              {purchases?.map((purchase) => (
                 <tr key={purchase._id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{purchase._id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{purchase.supplierId.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{purchase.productId.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{purchase?.productId?.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{purchase.quantity}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ₹{purchase.totalCost.toFixed(2)}
