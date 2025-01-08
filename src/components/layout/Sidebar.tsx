@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, Users, ShoppingCart, BarChart, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingCart, BarChart, LogOut,Tag } from 'lucide-react';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['admin', 'user'] },
   { icon: Package, label: 'Products', path: '/products', roles: ['admin'] },
   { icon: Users, label: 'Suppliers', path: '/suppliers', roles: ['admin'] },
   { icon: ShoppingCart, label: 'Purchases', path: '/purchases', roles: ['admin'] },
-  { icon: ShoppingCart, label: 'Categories', path: '/categories', roles: ['admin'] },
+  { icon: Tag, label: 'Categories', path: '/categories', roles: ['admin'] },
   { icon: BarChart, label: 'Sales', path: '/sales', roles: ['admin', 'user'] },
 ];
 

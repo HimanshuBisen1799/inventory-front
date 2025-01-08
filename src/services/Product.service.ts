@@ -34,6 +34,14 @@ const ProductService = {
     const response = await apiClient.get(API_BASE_URL);
     return response.data;
   },
+
+  deleteProduct: async (id: string) => {
+    const response = await apiClient.delete(`${API_BASE_URL}/delete/${id}`);
+    return response.data;
+}
+
 };
+
+
 
 export default ProductService;

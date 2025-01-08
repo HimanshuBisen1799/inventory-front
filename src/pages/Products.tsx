@@ -69,16 +69,20 @@ export default function Products() {
   }, []);
 
   // Handle delete product
-  const handleDeleteProduct = async (_id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     try {
-      await ProductService.deleteProduct(_id);
-      setProducts(products.filter((product) => product.id !== _id));
+      console.log('Attempting to delete product with ID:', id);
+      await ProductService.deleteProduct(id);
+      setProducts((prevProducts) => prevProducts.filter((product) => product._id !== id));
       setActiveDropdown(null); // Close dropdown after delete
+      console.log('Product deleted successfully');
     } catch (error) {
       console.error('Failed to delete product:', error);
     }
   };
 
+
+  
   // Handle save product
   const handleSaveProduct = async () => {
     if (!editingProduct || !updatedProduct) return;
@@ -86,7 +90,7 @@ export default function Products() {
     try {
       await ProductService.updateProduct(editingProduct._id, updatedProduct);
       const updatedProducts = products.map((product) =>
-        product._id === editingProduct.id ? { ...product, ...updatedProduct } : product
+        product._id === editingProduct._id ? { ...product, ...updatedProduct } : product
       );
       setProducts(updatedProducts);
       setIsModalOpen(false);
@@ -165,14 +169,13 @@ export default function Products() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        product.quantity > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.quantity > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}
                     >
                       {product.quantity > 0 ? 'In Stock' : 'Out of Stock'}
                     </span>
                   </td>
-                  
+
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="relative">
                       <button
@@ -198,10 +201,11 @@ export default function Products() {
                           </button>
                           <button
                             className="block px-4 py-2 text-sm text-red-700 hover:bg-red-100 w-full text-left"
-                            onClick={() => handleDeleteProduct(product.id)}
+                            onClick={() => handleDeleteProduct(product._id)}
                           >
                             Delete
                           </button>
+
                         </div>
                       )}
                     </div>
@@ -248,6 +252,21 @@ export default function Products() {
                   required
                 />
               </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Quantity</label>
+                <input
+                  type="text"
+                  value={updatedProduct.quantity}
+                  onChange={(e) =>
+                    setUpdatedProduct({ ...updatedProduct, quantity: e.target.value })
+                  }
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  required
+                />
+              </div>
+
+
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Price</label>
                 <input
