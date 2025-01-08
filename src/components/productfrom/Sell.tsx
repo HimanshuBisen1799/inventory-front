@@ -19,53 +19,8 @@ const Selladd: React.FC = () => {
     customerContact: "",
   });
 
-  const [isScanning, setIsScanning] = useState(false);
-  const [isManualEntry, setIsManualEntry] = useState(true);
-  const [scanBuffer, setScanBuffer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
-  const scanTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const skuInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isManualEntry) return;
-
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (!isScanning) {
-        setIsScanning(true);
-        setScanBuffer("");
-      }
-
-      if (scanTimeoutRef.current) {
-        clearTimeout(scanTimeoutRef.current);
-      }
-
-      if (e.key.length === 1 || e.key === "Enter") {
-        setScanBuffer(prev => prev + e.key);
-      }
-
-      scanTimeoutRef.current = setTimeout(() => {
-        if (scanBuffer) {
-          processScanComplete(scanBuffer.replace("Enter", ""));
-        }
-        setIsScanning(false);
-        setScanBuffer("");
-      }, 100);
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => {
-      window.removeEventListener("keydown", handleKeyPress);
-      if (scanTimeoutRef.current) {
-        clearTimeout(scanTimeoutRef.current);
-      }
-    };
-  }, [isScanning, scanBuffer, isManualEntry]);
-
-  const toggleEntryMode = () => {
-    setIsManualEntry(!isManualEntry);
-    setIsScanning(false);
-  };
 
   const fetchProductDetails = async (sku: string) => {
     try {
@@ -79,16 +34,6 @@ const Selladd: React.FC = () => {
       console.error('Error fetching product details:', error);
       return null;
     }
-  };
-
-  const processScanComplete = async (scannedSku: string) => {
-    const productDetails = await fetchProductDetails(scannedSku);
-    if (!productDetails) {
-      alert('Product not found!');
-      return;
-    }
-
-    updateProductInList(scannedSku, 1, productDetails);
   };
 
   const updateProductInList = (sku: string, quantity: number, productDetails: any) => {
@@ -131,23 +76,15 @@ const Selladd: React.FC = () => {
     field?: "products"
   ) => {
     const { name, value } = e.target;
-    
+
     if (field === "products" && index !== undefined) {
       const updatedProducts = [...saleDetails.products];
-      
+
       if (name === "sku") {
-        if (value === updatedProducts[index].sku) return;
-        
-        const productDetails = await fetchProductDetails(value);
-        if (productDetails) {
-          updatedProducts[index] = {
-            ...updatedProducts[index],
-            sku: value,
-            name: productDetails.name,
-            sellingPrice: productDetails.sellingPrice,
-            totalAmount: productDetails.sellingPrice * updatedProducts[index].quantitySold,
-          };
-        }
+        updatedProducts[index] = {
+          ...updatedProducts[index],
+          sku: value,
+        };
       } else if (name === "quantitySold") {
         const quantity = parseInt(value) || 1;
         updatedProducts[index] = {
@@ -156,29 +93,11 @@ const Selladd: React.FC = () => {
           totalAmount: quantity * (updatedProducts[index].sellingPrice || 0),
         };
       }
-      
+
       setSaleDetails({ ...saleDetails, products: updatedProducts });
       calculateTotal(updatedProducts);
     } else {
       setSaleDetails({ ...saleDetails, [name]: value });
-    }
-  };
-
-  const handleSkuBlur = async (index: number) => {
-    const product = saleDetails.products[index];
-    if (product.sku && !product.name) {
-      const productDetails = await fetchProductDetails(product.sku);
-      if (productDetails) {
-        const updatedProducts = [...saleDetails.products];
-        updatedProducts[index] = {
-          ...updatedProducts[index],
-          name: productDetails.name,
-          sellingPrice: productDetails.sellingPrice,
-          totalAmount: productDetails.sellingPrice * updatedProducts[index].quantitySold,
-        };
-        setSaleDetails({ ...saleDetails, products: updatedProducts });
-        calculateTotal(updatedProducts);
-      }
     }
   };
 
@@ -198,8 +117,8 @@ const Selladd: React.FC = () => {
   };
 
   const handleContinue = () => {
-    if (saleDetails.products.some(p => !p.sku || !p.name)) {
-      alert('Please add at least one valid product');
+    if (saleDetails.products.some(p => !p.sku)) {
+      alert('Please add at least one valid product SKU');
       return;
     }
     setStep(2);
@@ -208,12 +127,12 @@ const Selladd: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
-    
+
     try {
       setIsSubmitting(true);
       const response = await SalesService.createSale(saleDetails);
-      await printReceipt(response);
-      
+      console.log("Sale recorded: ", response);
+
       setSaleDetails({
         products: [{ sku: "", quantitySold: 1 }],
         paymentMethod: "",
@@ -226,7 +145,7 @@ const Selladd: React.FC = () => {
       alert("Sale recorded successfully!");
     } catch (error) {
       console.error("Error recording sale:", error);
-      alert(error instanceof Error ? error.message : "Failed to record the sale");
+      alert("Failed to record the sale");
     } finally {
       setIsSubmitting(false);
     }
@@ -235,31 +154,10 @@ const Selladd: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Sell Products</h1>
-      
+
       {step === 1 ? (
         <>
           <div className="mb-4 flex justify-between items-center">
-            <button
-              type="button"
-              onClick={toggleEntryMode}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md ${
-                isManualEntry 
-                  ? 'bg-yellow-500 hover:bg-yellow-600' 
-                  : 'bg-blue-500 hover:bg-blue-600'
-              } text-white`}
-            >
-              {isManualEntry ? (
-                <>
-                  <Barcode size={20} />
-                  Switch to Scanner Mode
-                </>
-              ) : (
-                <>
-                  <PenLine size={20} />
-                  Switch to Manual Entry
-                </>
-              )}
-            </button>
             <div className="text-xl font-bold">
               Total: ₹{totalAmount.toFixed(2)}
             </div>
@@ -283,14 +181,10 @@ const Selladd: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <input
                         type="text"
-                        id={`sku-${index}`}
                         name="sku"
-                        ref={index === saleDetails.products.length - 1 ? skuInputRef : null}
                         value={product.sku}
-                        // onChange={(e) => handleInputChange(e, index, "products")}
-                        // onBlur={() => handleSkuBlur(index)}
+                        onChange={(e) => handleInputChange(e, index, "products")}
                         className="border border-gray-300 rounded-md p-2"
-                        // readOnly={!isManualEntry && isScanning}
                         required
                       />
                     </td>
