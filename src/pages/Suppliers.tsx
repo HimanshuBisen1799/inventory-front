@@ -36,10 +36,15 @@ export default function Suppliers() {
 
     fetchSuppliers();
   }, []);
+  
   const navigate = useNavigate(); // Get the navigate function
 
   const handleClick = () => {
     navigate('/suppliers/add'); // Navigate to the /suppliers/add route
+  };
+
+  const handleEdit = (supplier: Supplier) => {
+    navigate(`/suppliers/update/${supplier._id}`, { state: { supplier } }); // Pass data via state
   };
 
   return (
@@ -47,12 +52,12 @@ export default function Suppliers() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">Suppliers</h1>
         <button
-      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      onClick={handleClick} // Handle click event
-    >
-      <Plus className="h-5 w-5 mr-2" />
-      Add Supplier
-    </button>
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          onClick={handleClick} // Handle click event
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Add Supplier
+        </button>
       </div>
 
       {loading ? (
@@ -63,7 +68,10 @@ export default function Suppliers() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                 company Name
+                  S.NO:
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Company Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contact Person
@@ -80,15 +88,21 @@ export default function Suppliers() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {suppliers.map((supplier) => (
+              {suppliers.map((supplier, index) => (
                 <tr key={supplier.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{supplier.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{supplier.contactPerson}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{supplier.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{supplier.phone}</td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {/* Add action buttons here (edit, delete, etc.) */}
-                    <button className="text-blue-600 hover:text-blue-800">Edit</button>
+                    <button
+                      className="text-blue-600 hover:text-blue-800"
+                      onClick={() => handleEdit(supplier)} // Pass supplier data to the edit page
+                    >
+                      Edit
+                    </button>
                   </td>
                 </tr>
               ))}

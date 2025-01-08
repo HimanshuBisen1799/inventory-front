@@ -17,7 +17,7 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface RegisterData extends LoginCredentials {
+export interface RegisterData  {
   name: string;
   phone: string;
   address: string;

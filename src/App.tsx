@@ -15,6 +15,7 @@ import RegistrationForm from './components/auth/RegistrationForm';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Categories from './pages/Category'
+import UpdateSupplier from './pages/UpdateSuppliers';
 
 const getToken = () => localStorage.getItem('token');
 const getUserRole = () => {
@@ -55,6 +56,7 @@ const AppRoutes = () => {
             <Route path="suppliers" element={<Suppliers />} />
             <Route path="categories" element={<Categories />} />
             <Route path="suppliers/add" element={<AddSupplier />} />
+            <Route path="suppliers/update/:id" element={<UpdateSupplier />} />
             <Route path="purchases" element={<Purchases />} />
             {/* <Route path="sales" element={<Sales />} /> */}
             <Route path="addproduct" element={<AddProduct />} />
