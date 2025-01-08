@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
-import ProductService from '../services/Product.service'; // Assuming ProductService is in this path
+import { Plus, MoreVertical } from 'lucide-react';
+import ProductService from '../services/Product.service';
 import { useNavigate } from 'react-router-dom';
-
 
 interface Product {
   id: string;
@@ -24,6 +23,12 @@ interface Product {
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [updatedProduct, setUpdatedProduct] = useState<Product | null>(null);
+
+  const navigate = useNavigate();
 
   // Fetch products from API
   useEffect(() => {
@@ -40,20 +45,47 @@ export default function Products() {
 
     fetchProducts();
   }, []);
- 
-    const navigate = useNavigate();
+
+  // Handle delete product
+  const handleDeleteProduct = async (_id: string) => {
+    try {
+      await ProductService.deleteProduct(_id);
+      setProducts(products.filter((product) => product.id !== _id));
+      setActiveDropdown(null); // Close dropdown after delete
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+    }
+  };
+
+  // Handle save product
+  const handleSaveProduct = async () => {
+    if (!editingProduct || !updatedProduct) return;
+
+    try {
+      await ProductService.updateProduct(editingProduct._id, updatedProduct);
+      const updatedProducts = products.map((product) =>
+        product._id === editingProduct.id ? { ...product, ...updatedProduct } : product
+      );
+      setProducts(updatedProducts);
+      setIsModalOpen(false);
+      setEditingProduct(null);
+      setUpdatedProduct(null);
+    } catch (error) {
+      console.error('Failed to update product:', error);
+    }
+  };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
         <button
-      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      onClick={() => navigate('/addproduct')}
-    >
-      <Plus className="h-5 w-5 mr-2" />
-      Add Pruduct
-    </button>
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          onClick={() => navigate('/addproduct')}
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Add Product
+        </button>
       </div>
 
       {loading ? (
@@ -63,7 +95,6 @@ export default function Products() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-              
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Name
                 </th>
@@ -86,7 +117,7 @@ export default function Products() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {products.map((product) => (
-                <tr key={product.id}>
+                <tr key={product._id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{product.name}</div>
                   </td>
@@ -108,13 +139,115 @@ export default function Products() {
                       {product.quantity > 0 ? 'In Stock' : 'Out of Stock'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                   b
+                  
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="relative">
+                      <button
+                        className="text-gray-500 hover:text-gray-700"
+                        onClick={() =>
+                          setActiveDropdown(activeDropdown === product._id ? null : product._id)
+                        }
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </button>
+                      {activeDropdown === product._id && (
+                        <div className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-10">
+                          <button
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setUpdatedProduct(product);
+                              setIsModalOpen(true);
+                              setActiveDropdown(null); // Close dropdown after Edit
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="block px-4 py-2 text-sm text-red-700 hover:bg-red-100 w-full text-left"
+                            onClick={() => handleDeleteProduct(product.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Modal */}
+      {isModalOpen && updatedProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Edit Product</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveProduct();
+              }}
+            >
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  value={updatedProduct.name}
+                  onChange={(e) =>
+                    setUpdatedProduct({ ...updatedProduct, name: e.target.value })
+                  }
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Category</label>
+                <input
+                  type="text"
+                  value={updatedProduct.category}
+                  onChange={(e) =>
+                    setUpdatedProduct({ ...updatedProduct, category: e.target.value })
+                  }
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Price</label>
+                <input
+                  type="number"
+                  value={updatedProduct.price}
+                  onChange={(e) =>
+                    setUpdatedProduct({ ...updatedProduct, price: Number(e.target.value) })
+                  }
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  required
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md mr-2"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setEditingProduct(null);
+                    setUpdatedProduct(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
