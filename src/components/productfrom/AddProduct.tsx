@@ -24,11 +24,10 @@ const AddProduct: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<{ id: string; name: string; email: string }[]>([]);
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanBuffer, setScanBuffer] = useState("");
+
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
-  const scanTimeoutRef = useRef(null);
-  const skuInputRef = useRef(null);
+
+
 
   function createEmptyProduct(): Product {
     return {
@@ -47,41 +46,7 @@ const AddProduct: React.FC = () => {
     };
   }
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (!isScanning) {
-        setIsScanning(true);
-        setScanBuffer("");
-      }
-
-      if (scanTimeoutRef.current) {
-        clearTimeout(scanTimeoutRef.current);
-      }
-
-      if (e.key.length === 1 || e.key === "Enter") {
-        setScanBuffer(prev => prev + e.key);
-      }
-
-      scanTimeoutRef.current = setTimeout(() => {
-        if (scanBuffer) {
-          const scannedSku = scanBuffer.replace("Enter", "");
-          const updatedProducts = [...products];
-          updatedProducts[currentProductIndex].sku = scannedSku;
-          setProducts(updatedProducts);
-        }
-        setIsScanning(false);
-        setScanBuffer("");
-      }, 100);
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => {
-      window.removeEventListener("keydown", handleKeyPress);
-      if (scanTimeoutRef.current) {
-        clearTimeout(scanTimeoutRef.current);
-      }
-    };
-  }, [isScanning, scanBuffer, currentProductIndex, products]);
+  
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -150,7 +115,7 @@ const AddProduct: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     const updatedProducts = [...products];
-    if (name === "sku") return;
+    // if (name === "sku") return;
     
     updatedProducts[index] = {
       ...updatedProducts[index],
@@ -162,6 +127,7 @@ const AddProduct: React.FC = () => {
   const parseValue = (value: string, name: string): string | number => {
     if (
       // name === "price" ||
+      name === "sku"||
       name === "purchasePrice" ||
       name === "sellingPrice" ||
       name === "quantity" ||
@@ -230,24 +196,21 @@ const AddProduct: React.FC = () => {
           <div key={index} className="border border-gray-300 p-4 rounded-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-medium text-lg">Product {index + 1}</h2>
-              {isScanning && currentProductIndex === index && (
-                <span className="text-blue-500">Scanning...</span>
-              )}
+         
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                SKU {isScanning && currentProductIndex === index && "(Scanning...)"}
-              </label>
-              <input
-                type="text"
-                value={product.sku}
-                className="border border-gray-300 rounded-md p-2 w-full bg-gray-100"
-                readOnly
-                onClick={() => setCurrentProductIndex(index)}
-                placeholder="Scan barcode or leave empty for auto-generation"
-              />
-            </div>
+  <label className="block text-sm font-medium text-gray-700">SKU (Optional)</label>
+  <input
+    type="text"
+    name="sku"
+    value={product.sku || ""}
+    onChange={(e) => handleChange(index, e)}
+    className="border border-gray-300 rounded-md p-2 w-full"
+    placeholder="Enter "
+  />
+</div>
+
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
