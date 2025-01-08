@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Plus, MoreVertical } from 'lucide-react';
 import ProductService from '../services/Product.service';
 import { useNavigate } from 'react-router-dom';
+import {
+  getAllCategories,
+ 
+} from '../services/Category.service';
 
 interface Product {
   id: string;
@@ -20,8 +24,10 @@ interface Product {
   weight: number;
 }
 
+
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
+   const [categories, setCategories] = useState<[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,6 +35,22 @@ export default function Products() {
   const [updatedProduct, setUpdatedProduct] = useState<Product | null>(null);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+
 
   // Fetch products from API
   useEffect(() => {
@@ -95,6 +117,9 @@ export default function Products() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  S.NO:
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Name
                 </th>
@@ -116,12 +141,20 @@ export default function Products() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {products.map((product) => (
+              {products.map((product, index) => (
+                console.log(product,"dsksdkdkfjkjfkljkljfjlk"),
                 <tr key={product._id}>
+                   <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{index+1}</div>
+                  </td>
+                  
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{product.name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
+
+                
+
                     <div className="text-sm text-gray-500">{product.category}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

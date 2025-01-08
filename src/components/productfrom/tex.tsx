@@ -1,215 +1,330 @@
-import React, { useState, useEffect } from "react";
-import ProductService from "../../services/Product.service";
-import { getAllCategories } from "../../services/Category.service";
+import React, { useState, useEffect, useRef } from "react";
+import SalesService, { SaleProduct } from "../../services/Sales.service";
+import { Printer, Plus, Trash2, ArrowRight } from 'lucide-react';
 
-type Product = {
-  name: string;
-  description: string;
-  category: string;
-  price: number;
-  purchasePrice: number;
-  sellingPrice: number;
-  quantity: number;
-  supplier: string;
+interface ProductDetails {
   sku: string;
-  manufacturingDate: string;
-  expiryDate: string;
-  weight: number;
-};
+  quantitySold: number;
+  name?: string;
+  sellingPrice?: number;
+  totalAmount?: number;
+}
 
-const AddProduct: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([
-    {
-      name: "",
-      description: "",
-      category: "",
-      price: 0,
-      purchasePrice: 0,
-      sellingPrice: 0,
-      quantity: 0,
-      supplier: "",
-      sku: "",
-      manufacturingDate: "",
-      expiryDate: "",
-      weight: 0,
-    },
-  ]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await getAllCategories();
-        setCategories(data.map((category: { name: string }) => category.name));
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  const createEmptyProduct = (): Product => ({
-    name: "",
-    description: "",
-    category: "",
-    price: 0,
-    purchasePrice: 0,
-    sellingPrice: 0,
-    quantity: 0,
-    supplier: "",
-    sku: "",
-    manufacturingDate: "",
-    expiryDate: "",
-    weight: 0,
+const Selladd: React.FC = () => {
+  const [step, setStep] = useState(1);
+  const [saleDetails, setSaleDetails] = useState({
+    products: [{ sku: "", quantitySold: 1 }] as ProductDetails[],
+    paymentMethod: "",
+    customerName: "",
+    customerContact: "",
   });
 
-  const handleChange = (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    const updatedProducts = [...products];
-    updatedProducts[index][name as keyof Product] =
-      name.includes("Date") || name === "sku" ? value : parseValue(value, name);
-    setProducts(updatedProducts);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanBuffer, setScanBuffer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const scanTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const skuInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Only process if not in an input field
+      if (!(e.target instanceof HTMLInputElement)) {
+        if (!isScanning) {
+          setIsScanning(true);
+          setScanBuffer("");
+        }
+
+        if (scanTimeoutRef.current) {
+          clearTimeout(scanTimeoutRef.current);
+        }
+
+        if (e.key.length === 1 || e.key === "Enter") {
+          setScanBuffer(prev => prev + e.key);
+        }
+
+        scanTimeoutRef.current = setTimeout(() => {
+          if (scanBuffer) {
+            processScanComplete(scanBuffer.replace("Enter", ""));
+          }
+          setIsScanning(false);
+          setScanBuffer("");
+        }, 100);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+      if (scanTimeoutRef.current) {
+        clearTimeout(scanTimeoutRef.current);
+      }
+    };
+  }, [isScanning, scanBuffer]);
+
+  const fetchProductDetails = async (sku: string) => {
+    try {
+      const response = await fetch(/api/products/sku/${sku});
+      const data = await response.json();
+      return {
+        name: data.name,
+        sellingPrice: data.sellingPrice,
+      };
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      return null;
+    }
   };
 
-  const parseValue = (value: string, name: string): string | number => {
-    if (
-      name === "price" ||
-      name === "purchasePrice" ||
-      name === "sellingPrice" ||
-      name === "quantity" ||
-      name === "weight"
-    ) {
-      return parseFloat(value) || 0;
+  const processScanComplete = async (scannedSku: string) => {
+    const productDetails = await fetchProductDetails(scannedSku);
+    if (!productDetails) {
+      alert('Product not found!');
+      return;
     }
-    return value;
+
+    // Check if the product already exists
+    const existingIndex = saleDetails.products.findIndex(p => p.sku === scannedSku);
+    
+    if (existingIndex >= 0) {
+      // Update existing product quantity
+      updateProductInList(scannedSku, 1, productDetails);
+    } else {
+      // Add new product
+      const updatedProducts = [...saleDetails.products];
+      
+      // If the last product is empty, use that slot
+      if (!updatedProducts[updatedProducts.length - 1].sku) {
+        updatedProducts[updatedProducts.length - 1] = {
+          sku: scannedSku,
+          quantitySold: 1,
+          name: productDetails.name,
+          sellingPrice: productDetails.sellingPrice,
+          totalAmount: productDetails.sellingPrice,
+        };
+      } else {
+        // Add a new product row
+        updatedProducts.push({
+          sku: scannedSku,
+          quantitySold: 1,
+          name: productDetails.name,
+          sellingPrice: productDetails.sellingPrice,
+          totalAmount: productDetails.sellingPrice,
+        });
+      }
+
+      // Add a new empty row for the next scan/entry
+      updatedProducts.push({ sku: "", quantitySold: 1 });
+      
+      setSaleDetails(prev => ({
+        ...prev,
+        products: updatedProducts,
+      }));
+
+      calculateTotal(updatedProducts);
+    }
+  };
+
+  const updateProductInList = (sku: string, quantity: number, productDetails: any) => {
+    const updatedProducts = [...saleDetails.products];
+    const existingProductIndex = updatedProducts.findIndex(p => p.sku === sku);
+
+    if (existingProductIndex >= 0) {
+      const newQuantity = updatedProducts[existingProductIndex].quantitySold + quantity;
+      updatedProducts[existingProductIndex] = {
+        ...updatedProducts[existingProductIndex],
+        quantitySold: newQuantity,
+        totalAmount: newQuantity * (productDetails.sellingPrice || 0),
+      };
+    }
+
+    setSaleDetails(prev => ({
+      ...prev,
+      products: updatedProducts,
+    }));
+
+    calculateTotal(updatedProducts);
+  };
+
+  const calculateTotal = (products: ProductDetails[]) => {
+    const total = products.reduce((sum, product) => sum + (product.totalAmount || 0), 0);
+    setTotalAmount(total);
+  };
+
+  const handleInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    index?: number,
+    field?: "products"
+  ) => {
+    const { name, value } = e.target;
+    
+    if (field === "products" && index !== undefined) {
+      const updatedProducts = [...saleDetails.products];
+      
+      if (name === "sku") {
+        if (value === updatedProducts[index].sku) return;
+        
+        const productDetails = await fetchProductDetails(value);
+        if (productDetails) {
+          updatedProducts[index] = {
+            ...updatedProducts[index],
+            sku: value,
+            name: productDetails.name,
+            sellingPrice: productDetails.sellingPrice,
+            totalAmount: productDetails.sellingPrice * updatedProducts[index].quantitySold,
+          };
+
+          // Add new empty row if this is the last row
+          if (index === updatedProducts.length - 1) {
+            updatedProducts.push({ sku: "", quantitySold: 1 });
+          }
+        }
+      } else if (name === "quantitySold") {
+        const quantity = parseInt(value) || 1;
+        updatedProducts[index] = {
+          ...updatedProducts[index],
+          quantitySold: quantity,
+          totalAmount: quantity * (updatedProducts[index].sellingPrice || 0),
+        };
+      }
+      
+      setSaleDetails({ ...saleDetails, products: updatedProducts });
+      calculateTotal(updatedProducts);
+    } else {
+      setSaleDetails({ ...saleDetails, [name]: value });
+    }
+  };
+
+
+  const handleSkuBlur = async (index: number) => {
+    const product = saleDetails.products[index];
+    if (product.sku && !product.name) {
+      const productDetails = await fetchProductDetails(product.sku);
+      if (productDetails) {
+        const updatedProducts = [...saleDetails.products];
+        updatedProducts[index] = {
+          ...updatedProducts[index],
+          name: productDetails.name,
+          sellingPrice: productDetails.sellingPrice,
+          totalAmount: productDetails.sellingPrice * updatedProducts[index].quantitySold,
+        };
+
+        // Add new empty row if this is the last row
+        if (index === updatedProducts.length - 1) {
+          updatedProducts.push({ sku: "", quantitySold: 1 });
+        }
+
+        setSaleDetails({ ...saleDetails, products: updatedProducts });
+        calculateTotal(updatedProducts);
+      }
+    }
   };
 
   const addProductField = () => {
-    setProducts([...products, createEmptyProduct()]);
+    setSaleDetails({
+      ...saleDetails,
+      products: [...saleDetails.products, { sku: "", quantitySold: 1 }],
+    });
   };
 
   const removeProductField = (index: number) => {
-    const updatedProducts = products.filter((_, i) => i !== index);
-    setProducts(updatedProducts);
-  };
-
-  const validateProducts = (): boolean => {
-    for (const product of products) {
-      if (product.price <= 0 || product.purchasePrice <= 0 || product.sellingPrice <= 0) {
-        alert("Price values must be greater than zero.");
-        return false;
-      }
-      if (product.quantity < 0) {
-        alert("Quantity cannot be negative.");
-        return false;
-      }
-      if (new Date(product.manufacturingDate) >= new Date(product.expiryDate)) {
-        alert("Manufacturing date must be earlier than expiry date.");
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateProducts()) return;
-
-    setIsLoading(true);
-    try {
-      await ProductService.addProduct(products);
-      alert("Products added successfully!");
-      setProducts([createEmptyProduct()]);
-    } catch (error) {
-      console.error("Error adding products:", error);
-      alert("An error occurred while adding products.");
-    } finally {
-      setIsLoading(false);
+    if (saleDetails.products.length > 1) {
+      const updatedProducts = saleDetails.products.filter((_, i) => i !== index);
+      setSaleDetails({ ...saleDetails, products: updatedProducts });
+      calculateTotal(updatedProducts);
     }
   };
+
+  // ... Rest of the code remains the same (handleContinue, handleSubmit, and the JSX) ...
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Add Multiple Products</h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {products.map((product, index) => (
-          <div key={index} className="border border-gray-300 p-4 rounded-md">
-            <h2 className="font-medium text-lg mb-2">Product {index + 1}</h2>
-            {Object.keys(product).map((key) => (
-              <div key={key} className="flex flex-col mb-4">
-                <label
-                  htmlFor={${key}-${index}}
-                  className="font-medium text-gray-700 capitalize"
-                >
-                  {key.replace(/([A-Z])/g, " $1")}
-                </label>
-                {key === "category" ? (
-                  <select
-                    id={${key}-${index}}
-                    name={key}
-                    value={product[key as keyof Product] as string}
-                    onChange={(e) => handleChange(index, e)}
-                    className="border border-gray-300 rounded-md p-2"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((category, i) => (
-                      <option key={i} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    id={${key}-${index}}
-                    name={key}
-                    type={
-                      key.includes("Date")
-                        ? "date"
-                        : typeof product[key as keyof Product] === "number"
-                        ? "number"
-                        : "text"
-                    }
-                    value={product[key as keyof Product] as string | number}
-                    onChange={(e) => handleChange(index, e)}
-                    className="border border-gray-300 rounded-md p-2"
-                    required
-                  />
-                )}
-              </div>
-            ))}
-            {products.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeProductField(index)}
-                className="text-red-500 hover:underline"
-              >
-                Remove Product
-              </button>
-            )}
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Sell Products</h1>
+      
+      {step === 1 ? (
+        <>
+          <div className="mb-4 flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              {isScanning ? 'Scanning...' : 'Ready to scan or enter SKU manually'}
+            </div>
+            <div className="text-xl font-bold">
+              Total: ₹{totalAmount.toFixed(2)}
+            </div>
           </div>
-        ))}
-        <button
-          type="button"
-          onClick={addProductField}
-          className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-        >
-          Add Another Product
-        </button>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-          disabled={isLoading}
-        >
-          {isLoading ? "Submitting..." : "Submit Products"}
-        </button>
-      </form>
+
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {saleDetails.products.map((product, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="text"
+                        id={sku-${index}}
+                        name="sku"
+                        ref={index === saleDetails.products.length - 1 ? skuInputRef : null}
+                        value={product.sku}
+                        onChange={(e) => handleInputChange(e, index, "products")}
+                        onBlur={() => handleSkuBlur(index)}
+                        className="border border-gray-300 rounded-md p-2"
+                        placeholder="Enter or scan SKU"
+                        required
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {product.name || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      ₹{product.sellingPrice?.toFixed(2) || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="number"
+                        name="quantitySold"
+                        value={product.quantitySold}
+                        onChange={(e) => handleInputChange(e, index, "products")}
+                        className="border border-gray-300 rounded-md p-2 w-20"
+                        min="1"
+                        required
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      ₹{product.totalAmount?.toFixed(2) || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {saleDetails.products.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeProductField(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Rest of the JSX remains the same */}
+        </>
+      ) : (
+        // Step 2 form remains the same
+      )}
     </div>
   );
 };
 
-export default AddProduct;
+export default Selladd;

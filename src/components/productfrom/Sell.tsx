@@ -65,17 +65,6 @@ const Selladd: React.FC = () => {
   const toggleEntryMode = () => {
     setIsManualEntry(!isManualEntry);
     setIsScanning(false);
-    // Clear SKU inputs when switching modes
-    setSaleDetails(prev => ({
-      ...prev,
-      products: prev.products.map(product => ({
-        ...product,
-        sku: "",
-        name: undefined,
-        sellingPrice: undefined,
-        totalAmount: undefined
-      }))
-    }));
   };
 
   const fetchProductDetails = async (sku: string) => {
@@ -144,11 +133,6 @@ const Selladd: React.FC = () => {
     const { name, value } = e.target;
     
     if (field === "products" && index !== undefined) {
-      // If in scanner mode and trying to change SKU, prevent the change
-      if (!isManualEntry && name === "sku") {
-        return;
-      }
-
       const updatedProducts = [...saleDetails.products];
       
       if (name === "sku") {
@@ -181,8 +165,6 @@ const Selladd: React.FC = () => {
   };
 
   const handleSkuBlur = async (index: number) => {
-    if (!isManualEntry) return; // Skip blur handling in scanner mode
-    
     const product = saleDetails.products[index];
     if (product.sku && !product.name) {
       const productDetails = await fetchProductDetails(product.sku);
@@ -230,6 +212,7 @@ const Selladd: React.FC = () => {
     try {
       setIsSubmitting(true);
       const response = await SalesService.createSale(saleDetails);
+      await printReceipt(response);
       
       setSaleDetails({
         products: [{ sku: "", quantitySold: 1 }],
@@ -304,11 +287,10 @@ const Selladd: React.FC = () => {
                         name="sku"
                         ref={index === saleDetails.products.length - 1 ? skuInputRef : null}
                         value={product.sku}
-                        onChange={(e) => handleInputChange(e, index, "products")}
-                        onBlur={() => handleSkuBlur(index)}
-                        className={`border border-gray-300 rounded-md p-2 ${!isManualEntry ? 'bg-gray-100' : ''}`}
-                        readOnly={!isManualEntry}
-                        placeholder={isManualEntry ? "Enter SKU" : "Waiting for scan..."}
+                        // onChange={(e) => handleInputChange(e, index, "products")}
+                        // onBlur={() => handleSkuBlur(index)}
+                        className="border border-gray-300 rounded-md p-2"
+                        // readOnly={!isManualEntry && isScanning}
                         required
                       />
                     </td>

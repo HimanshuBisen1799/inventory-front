@@ -85,7 +85,7 @@ export default function Purchases() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {purchases?.map((purchase) => (
+              {purchases?.map((purchase,) => (
                 <tr key={purchase._id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{purchase._id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{purchase.supplierId.name}</td>
