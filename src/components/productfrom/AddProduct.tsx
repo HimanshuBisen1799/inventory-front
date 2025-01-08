@@ -161,7 +161,7 @@ const AddProduct: React.FC = () => {
 
   const parseValue = (value: string, name: string): string | number => {
     if (
-      name === "price" ||
+      // name === "price" ||
       name === "purchasePrice" ||
       name === "sellingPrice" ||
       name === "quantity" ||
@@ -183,7 +183,7 @@ const AddProduct: React.FC = () => {
 
   const validateProducts = (): boolean => {
     for (const product of products) {
-      if (product.price <= 0 || product.purchasePrice <= 0 || product.sellingPrice <= 0) {
+      if ( product.purchasePrice <= 0 || product.sellingPrice <= 0) {
         alert("Price values must be greater than zero.");
         return false;
       }
@@ -308,7 +308,7 @@ const AddProduct: React.FC = () => {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700">Price</label>
                 <input
                   name="price"
@@ -318,7 +318,7 @@ const AddProduct: React.FC = () => {
                   className="border border-gray-300 rounded-md p-2 w-full"
                   required
                 />
-              </div>
+              </div> */}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Purchase Price</label>
@@ -357,6 +357,19 @@ const AddProduct: React.FC = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700">Weight (kg)</label>
+                <input
+                  name="weight"
+                  type="number"
+                  value={product.weight}
+                  onChange={(e) => handleChange(index, e)}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                  step="0.01"
+                  min="0"
+                />
+              </div> 
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Manufacturing Date
                 </label>
@@ -383,18 +396,7 @@ const AddProduct: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Weight (kg)</label>
-                <input
-                  name="weight"
-                  type="number"
-                  value={product.weight}
-                  onChange={(e) => handleChange(index, e)}
-                  className="border border-gray-300 rounded-md p-2 w-full"
-                  step="0.01"
-                  min="0"
-                />
-              </div>
+             
             </div>
 
             {products.length > 1 && (
