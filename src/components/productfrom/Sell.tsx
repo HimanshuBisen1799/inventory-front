@@ -464,6 +464,7 @@ const Selladd: React.FC = () => {
     }
   };
 
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setSaleDetails(prev => ({
