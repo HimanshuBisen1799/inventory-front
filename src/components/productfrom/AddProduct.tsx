@@ -88,53 +88,13 @@ const AddProduct: React.FC = () => {
         handlePrint();
       }, 2000);
 
-      // setProductsData([]);
-      // }, 5000);
-      // await device.open();
-      // await device.selectConfiguration(1);
-      // await device.claimInterface(0);
-
-      // const receiptData = [
-      //   "\x1B\x40", // Initialize printer
-      //   "\x1B\x61\x01", // Center alignment
-      //   "Product Added Successfully\n", // Message
-      //   "-".repeat(32) + "\n", // Divider line
-      //   `SKU: ${product.sku}\n`, // SKU information
-      //   `Name: ${product.name}\n`, // Name information
-      //   `Category: ${product.category}\n`, // Category information
-      //   "-".repeat(32) + "\n", // Divider line
-      //   "\x1D\x68\x80", // Barcode height
-      //   "\x1D\x77\x08", // Barcode width
-      //   "\x1D\x6B\x49\x0C", // Barcode format
-      //   `${product.sku}`, // Barcode data
-      //   "\x00", // Null terminator for barcode
-      //   "\n\n\n\n", // Line feeds for spacing
-      //   "\x1D\x56\x41", // Cut paper
-      // ].join(""); // Combine all parts into a single string
-
-      // const encoder = new TextEncoder();
-      // const data = encoder.encode(receiptData);
-      // await device.transferOut(1, data);
     } catch (error) {
       console.error("Error printing receipt:", error);
       alert("Failed to print receipt. Please check printer connection.");
     }
   };
 
-  // const handleChange = (
-  //   index: number,
-  //   e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  // ) => {
-  //   const { name, value } = e.target;
-  //   const updatedProducts = [...products];
-  //   if (name === "sku") return;
-
-  //   updatedProducts[index] = {
-  //     ...updatedProducts[index],
-  //     [name]: name.includes("Date") ? value : parseValue(value, name)
-  //   };
-  //   setProducts(updatedProducts);
-  // };
+ 
   const handleChange = (
     index: number,
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -203,9 +163,7 @@ const AddProduct: React.FC = () => {
     try {
       const response = await ProductService.addProduct(products);
 
-      // for (const product of response.products) {
-      //   await printReceipt(product);
-      // }
+    
 
       console.log(response.products);
 
