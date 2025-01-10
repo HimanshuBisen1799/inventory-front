@@ -5,6 +5,9 @@ import SupplierService from "../../services/Supplier.service";
 import { Printer, Barcode, PenLine, Plus, Trash2 } from "lucide-react";
 import Template from "./Template";
 import { useReactToPrint } from "react-to-print";
+import { useNavigate } from 'react-router-dom';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type Product = {
   name: string;
@@ -31,6 +34,7 @@ const AddProduct: React.FC = () => {
   const [productsData, setProductsData] = useState<any>([]);
   const templateRef = useRef(null);
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const navigate = useNavigate();
 
   function createEmptyProduct(): Product {
     return {
@@ -155,6 +159,7 @@ const AddProduct: React.FC = () => {
     return true;
   };
 
+ 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateProducts()) return;
@@ -163,17 +168,28 @@ const AddProduct: React.FC = () => {
     try {
       const response = await ProductService.addProduct(products);
 
-    
-
       console.log(response.products);
 
       printReceipt(response.products);
 
-      alert("Products added successfully!");
+      toast.success("Products added successfully!", {
+        position: "top-right",
+        autoClose: 2000, // Closes after 2 seconds
+      });
+
       setProducts([createEmptyProduct()]);
+
+      // Navigate after 2 seconds
+      setTimeout(() => {
+        navigate("/addproduct");
+      }, 2000);
     } catch (error) {
       console.error("Error adding products:", error);
-      alert("An error occurred while adding products.");
+
+      toast.error("An error occurred while adding products.", {
+        position: "top-right",
+        autoClose: 3000, // Closes after 3 seconds
+      });
     } finally {
       setIsLoading(false);
     }
@@ -397,6 +413,7 @@ const AddProduct: React.FC = () => {
           >
             <Printer size={20} />
             {isLoading ? "Processing..." : "Submit & Print Labels"}
+            onClick
           </button>
         </div>
       </form>
