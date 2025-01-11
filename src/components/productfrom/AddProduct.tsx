@@ -5,7 +5,7 @@ import SupplierService from "../../services/Supplier.service";
 import { Printer, Barcode, PenLine, Plus, Trash2 } from "lucide-react";
 import Template from "./Template";
 import { useReactToPrint } from "react-to-print";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -13,7 +13,7 @@ type Product = {
   name: string;
   description: string;
   category: string;
-  price: number;
+  mrpprice: number;
   purchasePrice: number;
   sellingPrice: number;
   quantity: number;
@@ -41,17 +41,18 @@ const AddProduct: React.FC = () => {
       name: "",
       description: "",
       category: "",
-      price: 0,
-      purchasePrice: 0,
-      sellingPrice: 0,
-      quantity: 0,
+      mrpprice: undefined,
+      purchasePrice: undefined,
+      sellingPrice: undefined,
+      quantity: undefined,
       email: "",
       sku: "",
       manufacturingDate: "",
       expiryDate: "",
-      weight: 0,
+      weight: undefined,
     };
   }
+  
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -88,17 +89,17 @@ const AddProduct: React.FC = () => {
 
       setProductsData(products);
       // setTimeout(() => {
-      setTimeout(() => {
-        handlePrint();
-      }, 2000);
-
+      if (products.length) {
+        setTimeout(() => {
+          handlePrint();
+        }, 2000);
+      }
     } catch (error) {
       console.error("Error printing receipt:", error);
       alert("Failed to print receipt. Please check printer connection.");
     }
   };
 
- 
   const handleChange = (
     index: number,
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -116,7 +117,7 @@ const AddProduct: React.FC = () => {
 
   const parseValue = (value: string, name: string): string | number => {
     if (
-      // name === "price" ||
+      name === "mrpprice" ||
 
       name === "purchasePrice" ||
       name === "sellingPrice" ||
@@ -159,7 +160,6 @@ const AddProduct: React.FC = () => {
     return true;
   };
 
- 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateProducts()) return;
@@ -170,7 +170,16 @@ const AddProduct: React.FC = () => {
 
       console.log(response.products);
 
-      printReceipt(response.products);
+      // printReceipt(response.products);
+      printReceipt(
+        response.products?.filter((product: any) => {
+          const isexisted = products.find((p) => p.name === product.name)?.sku
+            ? false
+            : true;
+
+          return isexisted;
+        })
+      );
 
       toast.success("Products added successfully!", {
         position: "top-right",
@@ -286,17 +295,17 @@ const AddProduct: React.FC = () => {
                 />
               </div>
 
-              {/* <div>
-                <label className="block text-sm font-medium text-gray-700">Price</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700"> MRP Price</label>
                 <input
-                  name="price"
+                  name="mrpprice"
                   type="number"
-                  value={product.price}
+                  value={product.mrpprice}
                   onChange={(e) => handleChange(index, e)}
                   className="border border-gray-300 rounded-md p-2 w-full"
                   required
                 />
-              </div> */}
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
