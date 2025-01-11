@@ -2,7 +2,12 @@
 import axios, { AxiosInstance } from 'axios';
 
 // Define the base URL for the API
+<<<<<<< HEAD
 // const API_BASE_URL: string = import.meta.env.VITE_BASE_URL || 'https://billingpos-backend.onrender.com/api/v1';
+=======
+const API_BASE_URL: string = import.meta.env.VITE_BASE_URL || 'https://localhost:5000';
+// const API_BASE_URL: string = 'https://localhost:5000';
+>>>>>>> 4e7e97cf129e21275323510bb3d311f25b4c22a2
 
 // Create an Axios instance with the base URL
 const apiClient: AxiosInstance = axios.create({

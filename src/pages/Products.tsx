@@ -173,7 +173,12 @@ export default function Products() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
+<<<<<<< HEAD
               {products?.map((product, index) => (
+=======
+              {products.map((product, index) => (
+                // console.log(product,"dsksdkdkfjkjfkljkljfjlk"),
+>>>>>>> 4e7e97cf129e21275323510bb3d311f25b4c22a2
                 <tr key={product._id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
