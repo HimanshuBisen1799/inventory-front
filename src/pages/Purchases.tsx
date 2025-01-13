@@ -5,6 +5,7 @@ import PurchaseService from '../services/Purchase.service';
 import SupplierService from '../services/Supplier.service';
 import ProductService from '../services/Product.service';
 import { useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
 
 interface Purchase {
   _id: string;
@@ -65,16 +66,29 @@ export default function Purchases() {
   }, []);
 
   const handleDeletePurchase = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this purchase?");
+    if(!confirmDelete)
+    {
+      return; // If user cancels, do nothing
+    }
     try {
       const response = await PurchaseService.deletePurchase(id);
-      if (response.status === 200) {
+      if (response.message === 200) {
         setPurchases((prevPurchases) =>
           prevPurchases.filter((purchase) => purchase._id !== id)
         );
         setActiveDropdown(null);
+        toast.success("Purchase deleted successfully");
+        console.log("Purchase deleted successfully");
+      }
+      else
+      {
+        console.error("Failed to delete Purchase",response)
+        toast.error("Failed to delete purchase");
       }
     } catch (error) {
       console.error("Failed to delete purchase:", error);
+      toast.error("Error occured while deleting product");
     }
   };
 
@@ -96,8 +110,15 @@ export default function Purchases() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.productId || !formData.supplierId || formData.quantity <= 0 || formData.pricePerUnit <= 0) {
+      alert('Please fill out all required fields correctly.');
+      return;
+    }
+
     try {
       if (editingPurchase) {
+        // Update an existing purchase.
         const updatedPurchase = await PurchaseService.updatePurchase(editingPurchase._id, formData);
         setPurchases((prevPurchases) =>
           prevPurchases.map((purchase) =>
@@ -105,14 +126,17 @@ export default function Purchases() {
           )
         );
       } else {
+        // Add a new purchase.
         const newPurchase = await PurchaseService.addPurchase(formData);
         setPurchases((prevPurchases) => [...prevPurchases, newPurchase]);
       }
-      closeModal();
+      closeModal(); // Close the modal after successful submission.
     } catch (error) {
       console.error('Failed to save purchase:', error);
+      alert('An error occurred. Please try again.');
     }
   };
+
 
   const openEditModal = (purchase: Purchase) => {
     setEditingPurchase(purchase);
@@ -261,6 +285,7 @@ export default function Purchases() {
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       )}
