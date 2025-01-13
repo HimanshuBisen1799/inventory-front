@@ -188,7 +188,7 @@ const navigate = useNavigate();
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{purchase?.productId?.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{purchase?.quantity}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ₹{purchase?.totalCost.toFixed(2)}
+                    ₹{purchase?.totalCost?.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(purchase?.purchaseDate).toLocaleString()}
