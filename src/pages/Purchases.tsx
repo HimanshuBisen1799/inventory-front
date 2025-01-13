@@ -67,30 +67,33 @@ export default function Purchases() {
 
   const handleDeletePurchase = async (id: string) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this purchase?");
-    if(!confirmDelete)
-    {
+    if (!confirmDelete) {
       return; // If user cancels, do nothing
     }
+  
     try {
       const response = await PurchaseService.deletePurchase(id);
-      if (response.message === 200) {
+  
+      // Check if the message in the response indicates success
+      if (response.message === "Purchase deleted successfully") {
+        // Update the purchases state to reflect the deletion
         setPurchases((prevPurchases) =>
           prevPurchases.filter((purchase) => purchase._id !== id)
         );
         setActiveDropdown(null);
         toast.success("Purchase deleted successfully");
         console.log("Purchase deleted successfully");
-      }
-      else
-      {
-        console.error("Failed to delete Purchase",response)
+      } else {
+        console.error("Failed to delete purchase:", response);
         toast.error("Failed to delete purchase");
       }
     } catch (error) {
-      console.error("Failed to delete purchase:", error);
-      toast.error("Error occured while deleting product");
+      console.error("Error occurred while deleting purchase:", error);
+      toast.error("An error occurred while deleting the purchase");
     }
   };
+  
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
