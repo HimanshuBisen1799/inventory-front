@@ -65,27 +65,22 @@ export default function Purchases() {
     fetchData();
   }, []);
 
+
+
   const handleDeletePurchase = async (id: string) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this purchase?");
-    if(!confirmDelete)
-    {
+    if (!confirmDelete) {
       return; // If user cancels, do nothing
     }
     try {
       const response = await PurchaseService.deletePurchase(id);
-      if (response.message === 200) {
-        setPurchases((prevPurchases) =>
-          prevPurchases.filter((purchase) => purchase._id !== id)
-        );
-        setActiveDropdown(null);
-        toast.success("Purchase deleted successfully");
-        console.log("Purchase deleted successfully");
-      }
-      else
-      {
-        console.error("Failed to delete Purchase",response)
-        toast.error("Failed to delete purchase");
-      }
+      setPurchases((prevPurchases) =>
+        prevPurchases.filter((purchase) => purchase?._id !== id)
+      );
+      setActiveDropdown(null);
+      toast.success("Purchase deleted successfully");
+      console.log("Purchase deleted successfully");
+
     } catch (error) {
       console.error("Failed to delete purchase:", error);
       toast.error("Error occured while deleting product");
@@ -108,6 +103,38 @@ export default function Purchases() {
     });
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+
+  //   if (!formData.productId || !formData.supplierId || formData.quantity <= 0 || formData.pricePerUnit <= 0) {
+  //     alert('Please fill out all required fields correctly.');
+  //     return;
+  //   }
+
+  //   try {
+  //     if (editingPurchase) {
+  //       // Update an existing purchase.
+  //       const updatedPurchase = await PurchaseService.updatePurchase(editingPurchase._id, formData);
+  //       setPurchases((prevPurchases) =>
+  //         prevPurchases.map((purchase) =>
+  //           purchase._id === editingPurchase._id ? updatedPurchase : purchase
+  //         )
+  //       );
+  //       setPurchases(updatedPurchase);
+  //     } else {
+  //       // Add a new purchase.
+  //       const newPurchase = await PurchaseService.addPurchase(formData);
+  //       setPurchases((prevPurchases) => [...prevPurchases, newPurchase]);
+  //     }
+
+  //     closeModal(); // Close the modal after successful submission.
+  //   } catch (error) {
+  //     console.error('Failed to save purchase:', error);
+  //     alert('An error occurred. Please try again.');
+  //   }
+  // };
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -117,25 +144,29 @@ export default function Purchases() {
     }
 
     try {
+      let updatedPurchases;
       if (editingPurchase) {
         // Update an existing purchase.
         const updatedPurchase = await PurchaseService.updatePurchase(editingPurchase._id, formData);
-        setPurchases((prevPurchases) =>
-          prevPurchases.map((purchase) =>
-            purchase._id === editingPurchase._id ? updatedPurchase : purchase
-          )
+        updatedPurchases = purchases.map((purchase) =>
+          purchase._id === editingPurchase._id ? updatedPurchase : purchase
         );
       } else {
         // Add a new purchase.
         const newPurchase = await PurchaseService.addPurchase(formData);
-        setPurchases((prevPurchases) => [...prevPurchases, newPurchase]);
+        updatedPurchases = [...purchases, newPurchase];
       }
+
+      setPurchases(updatedPurchases); // Update the state with the new data.
       closeModal(); // Close the modal after successful submission.
     } catch (error) {
       console.error('Failed to save purchase:', error);
       alert('An error occurred. Please try again.');
     }
   };
+
+
+
 
 
   const openEditModal = (purchase: Purchase) => {
@@ -393,6 +424,7 @@ export default function Purchases() {
                 <button
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+
                 >
                   {editingPurchase ? 'Update' : 'Add'}
                 </button>
@@ -401,6 +433,7 @@ export default function Purchases() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
