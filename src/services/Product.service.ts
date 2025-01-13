@@ -113,10 +113,37 @@ const ProductService = {
         : undefined,
     }));
   },
+  getAllProductsCategory: async (): Promise<Product[]> => {
+    const response = await apiClient.get(`${API_BASE_URL}/getAllProductsCategory`); // Ensure proper URL concatenation
+    return response.data.map((product: any) => ({
+      ...product,
+      category: {
+        id: product.category._id,
+        name: product.category.name,
+        description: product.category.description,
+        gstnumber: product.category.gstnumber,
+      },
+      supplier: product.supplier
+        ? {
+            id: product.supplier._id,
+            name: product.supplier.name,
+            contactInfo: product.supplier.contactInfo, // Adjust based on supplier fields
+          }
+        : undefined,
+    }));
+  },
+  
+  
 
   deleteProduct: async (id: string) => {
-    const response = await apiClient.delete(`${API_BASE_URL}/delete/${id}`);
-    return response.data;
+    try {
+      // Update the API endpoint path to reflect the new route
+      const response = await apiClient.delete(`${API_BASE_URL}/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      throw error; // Re-throw the error to handle it in the component if needed
+    }
   },
 };
 
